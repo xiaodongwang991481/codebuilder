@@ -1,0 +1,4 @@
+nclude AUTHORS
+include LICENSE
+recursive-include docs *
+recursive-include codebuilder *
