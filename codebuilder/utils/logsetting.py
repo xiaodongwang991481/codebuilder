@@ -34,13 +34,13 @@ def getLevelByName(level_name):
 
 def init(
         logfile=None,
-        logdir=setting.LOG_DIR,
-        loglevel=setting.LOG_LEVEL,
+        logdir=settings.LOG_DIR,
+        loglevel=settings.LOG_LEVEL,
         log_interval_unit=settings.LOG_INTERVAL_UNIT,
-        log_interval=LOG_INTERVAL,
-        log_backup_count=LOG_BACKUPS,
-        log_format=LOG_FORMAT,
-        log_filters=LOG_FILTERS
+        log_interval=settings.LOG_INTERVAL,
+        log_backup_count=settings.LOG_BACKUPS,
+        log_format=settings.LOG_FORMAT,
+        log_filters=settings.LOG_FILTERS
 ):
     """Init loggsetting."""
     logger = logging.getLogger()

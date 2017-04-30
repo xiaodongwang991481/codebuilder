@@ -23,7 +23,7 @@ class ConfigAttr(object):
 
 def parse(obj, recursive=True, force=False):
     if isinstance(obj, ConfigAttr):
-        if force or not obj.delay()
+        if force or not obj.delay():
             value = obj.get()
         else:
             return obj

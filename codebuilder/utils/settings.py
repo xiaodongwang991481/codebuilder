@@ -6,7 +6,7 @@ from codebuilder.utils import util
 CONFIG_DIR = os.environ.get('CONFIG_DIR', '/etc/codebuilder')
 CONFIG_FILES = []
 LOG_LEVEL = 'debug'
-LOG_DIR = '/var/log/orca'
+LOG_DIR = '/var/log/codebuilder'
 LOG_INTERVAL = 6
 LOG_INTERVAL_UNIT = 'h'
 LOG_FORMAT = (

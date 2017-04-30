@@ -15,5 +15,5 @@ ipython
 psycopg2
 six
 wsgiref
-yaml
+pyyaml
 json

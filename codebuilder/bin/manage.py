@@ -5,7 +5,7 @@ from codebuilder.utils import logsetting
 
 logger = logging.getLogger(__name__)
 
-def main()
+def main():
     logsetting.init()
     logger.debug('test')
 
