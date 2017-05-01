@@ -4,8 +4,8 @@ import os
 import os.path
 import sys
 
-from codebuilder.utils import util
 from codebuilder.utils import settings
+from codebuilder.utils import util
 
 # mapping str setting in flag --loglevel to logging level.
 LOGLEVEL_MAPPING = {
