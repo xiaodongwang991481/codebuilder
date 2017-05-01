@@ -5,7 +5,7 @@ import os.path
 import sys
 
 from codebuilder.utils import settings
-from codebuilder.utils import util
+
 
 # mapping str setting in flag --loglevel to logging level.
 LOGLEVEL_MAPPING = {
@@ -33,16 +33,36 @@ def getLevelByName(level_name):
 
 
 def init_logging(
-        logfile=setting.LOG_FILE,
-        logdir=settings.LOG_DIR,
-        loglevel=settings.LOG_LEVEL,
-        log_interval_unit=settings.LOG_INTERVAL_UNIT,
-        log_interval=settings.LOG_INTERVAL,
-        log_backup_count=settings.LOG_BACKUPS,
-        log_format=settings.LOG_FORMAT,
-        log_filters=settings.LOG_FILTERS
+    logfile=None,
+    logdir=None,
+    loglevel=None,
+    log_interval_unit=None,
+    log_interval=None,
+    log_backup_count=None,
+    log_format=None,
+    log_filters=None
 ):
     """Init loggsetting."""
+    logfile = logfile if logfile is not None else settings.LOG_FILE
+    logdir = logdir if logdir is not None else settings.LOG_DIR
+    loglevel = loglevel if loglevel is not None else settings.LOG_LEVEL
+    log_interval_unit = (
+        log_interval_unit
+        if log_interval_unit is not None else settings.LOG_INTERVAL_UNIT
+    )
+    log_interval = (
+        log_interval if log_interval is not None else settings.LOG_INTERVAL
+    )
+    log_backup_count = (
+        log_backup_count
+        if log_backup_count is not None else settings.LOG_BACKUPS
+    )
+    log_format = (
+        log_format if log_format is not None else settings.LOG_FORMAT
+    )
+    log_filters = (
+        log_filters if log_filters is not None else settings.LOG_FILTERS
+    )
     logger = logging.getLogger()
     if logger.handlers:
         for handler in logger.handlers:
@@ -69,6 +89,8 @@ def init_logging(
                 when=log_interval_unit,
                 interval=log_interval,
                 backupCount=log_backup_count)
+    for log_filter in log_filters:
+        handler.addFilter(logging.Filter(log_filter))
     if loglevel in LOGLEVEL_MAPPING:
         logger.setLevel(LOGLEVEL_MAPPING[loglevel])
 
