@@ -16,4 +16,3 @@ psycopg2
 six
 wsgiref
 pyyaml
-json
