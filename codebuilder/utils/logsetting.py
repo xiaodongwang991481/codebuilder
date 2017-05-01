@@ -32,8 +32,8 @@ def getLevelByName(level_name):
     return LOGLEVEL_MAPPING[level_name]
 
 
-def init(
-        logfile=None,
+def init_logging(
+        logfile=setting.LOG_FILE,
         logdir=settings.LOG_DIR,
         loglevel=settings.LOG_LEVEL,
         log_interval_unit=settings.LOG_INTERVAL_UNIT,

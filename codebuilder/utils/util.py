@@ -8,6 +8,10 @@ import ConfigParser
 PARSER = argparse.ArgumentParser(description='')
 PARSED_ARGS = None
 
+def init_args():
+    global PARSED_ARGS
+    PARSED_ARGS = PARSER.parse_args()
+
 
 class ConfigAttr(object):
     __metaclass__ = ABCMeta
@@ -24,19 +28,19 @@ class ConfigAttr(object):
 def parse(obj, recursive=True, force=False):
     if isinstance(obj, ConfigAttr):
         if force or not obj.delay():
-            value = obj.get()
+            return parse(obj.get(), recursive=recursive, force=force)
         else:
             return obj
-    else:
-        value = obj
     if recursive:
-        if isinstance(value, dict):
-            return {item_key: parse(item_value, recursive=recursive, force=force) for item_key, item_value in value.items()}
-        elif isinstance(value, list):
-            return [parse(item, recursive=recursive, force=force) for item in value]
-        elif isinstance(value, tuple):
-            return tuple([parse(item, recursive=recursive, force=force) for item in value])
-    return value
+        if isinstance(obj, dict):
+            return {item_key: parse(item_value, recursive=recursive, force=force) for item_key, item_value in obj.items()}
+        elif isinstance(obj, list):
+            return [parse(item, recursive=recursive, force=force) for item in obj]
+        elif isinstance(obj, tuple):
+            return tuple([parse(item, recursive=recursive, force=force) for item in obj])
+        elif isinstance(obj, set):
+            return set([parse(item, recursive=recursive, force=force) for item in obj])
+    return obj
 
 
 class Argument(ConfigAttr):
@@ -117,15 +121,10 @@ def merge(first, second, override=False, recursive=True):
     elif isinstance(fist, list) and isinstance(second, list):
         return merge_list(first, second)
     else:
-        if first is None:
+        if override:
             return second
-        elif second is None:
-            return first
         else:
-            if override:
-                return second
-            else:
-                return first
+            return first
 
 def merge_all(configs):
     return reduce(merge, configs, {})
