@@ -2,8 +2,12 @@ from abc import ABCMeta
 from abc import abstractmethod
 import argparse
 import ConfigParser
+import datetime
+import dateutil
+import dateutil.tz
 import json
 from six import with_metaclass
+import uuid
 import yaml
 
 
@@ -11,9 +15,11 @@ PARSER = argparse.ArgumentParser(description='')
 PARSED_ARGS = None
 
 
-def init_args():
+def init_args(args):
     global PARSED_ARGS
-    PARSED_ARGS = PARSER.parse_args()
+    PARSER.add_argument('args', nargs=argparse.REMAINDER)
+    PARSED_ARGS = PARSER.parse_args(args)
+    return PARSED_ARGS.args
 
 
 class ConfigAttr(with_metaclass(ABCMeta)):
@@ -60,21 +66,21 @@ class Argument(ConfigAttr):
     def get(self):
         if PARSED_ARGS is None:
             raise ValueError("arguments are not initialized")
-        return getattr(PARSED_ARGS, self.action.dest)
+        return parse(getattr(PARSED_ARGS, self.action.dest), force=True)
 
     def delay(self):
         return False
 
 
 class Proxy(ConfigAttr):
-    def __init__(self, func, delay=False, *args, **kwargs):
+    def __init__(self, func, *args, **kwargs):
         self.func = func
         self.args = args
+        self._delay = kwargs.pop('delay', False)
         self.kwargs = kwargs
-        self._delay = delay
 
     def get(self):
-        return self.func(*self.args, **self.kwargs)
+        return parse(self.func(*self.args, **self.kwargs), force=True)
 
     def delay(self):
         return self._delay
@@ -83,16 +89,18 @@ class Proxy(ConfigAttr):
 class LazyObj(ConfigAttr):
     CACHE = {}
 
-    def __init__(self, func, delay, *args, **kwargs):
+    def __init__(self, func, *args, **kwargs):
         self.func = func
         self.args = args
+        self._delay = kwargs.pop('delay', False)
         self.kwargs = kwargs
-        self._delay = delay
 
     def get(self):
         self_id = id(self)
         if self_id not in LazyObj.CACHE:
-            LazyObj.CACHE[self_id] = self.func(*self.args, **self.kwargs)
+            LazyObj.CACHE[self_id] = parse(
+                self.func(*self.args, **self.kwargs), force=True
+            )
         return LazyObj.CACHE[self_id]
 
     def delay(self):
@@ -175,3 +183,19 @@ def load_configs(filenames):
         else:
             raise Exception('file %s unrecognized format' % filename)
     return merge_all(configs)
+
+
+def generate_uuid():
+    return uuid.uuid4().hex
+
+
+def datetime_now(timezone=None):
+    utc_now = datetime.datetime.utcnow().replace(
+        tzinfo=dateutil.tz.tzutc()
+    )
+    if timezone is not None:
+        return utc_now.astimezone(
+            dateutil.tz.gettz(timezone)
+        )
+    else:
+        return utc_now
