@@ -51,7 +51,7 @@ def do_generic_show(config, cmd, namespace):
 
 
 def do_check_migration(config, cmd, namespace):
-    do_alembic_command(config, 'branches')
+    do_alembic_command(config, 'heads')
     validate_head_files(config)
 
 
@@ -106,10 +106,6 @@ def do_revision(config, cmd, namespace):
     update_head_files(config)
 
 
-def _get_revisions(script):
-    return list(script.walk_revisions(base='base', head='heads'))
-
-
 def _check_head(head_file, head):
     try:
         with open(head_file) as file_:
@@ -129,15 +125,23 @@ def validate_head_files(config):
     head_file = _get_head_file_path(config)
     heads_file = _get_heads_file_path(config)
     if not os.path.exists(head_file) and not os.path.exists(heads_file):
-        alembic_util.warn(_("Repository does not contain HEAD files"))
+        alembic_util.err(_("Repository does not contain HEAD files"))
         return
     heads = _get_heads(config)
-    if os.path.exists(head_file):
-        for head in heads:
-            _check_head(head_file, head)
-    if os.path.exists(heads_file):
-        for head in heads:
-            _check_head(heads_file, head)
+    for file_ in (head_file, heads_file):
+        if os.path.exists(file_):
+            if not heads:
+                alembic_util.err(
+                    'HEAD file contains no head'
+                )
+            if len(heads) > 1:
+                alembic_util.err(
+                    'HEAD file contains more than one head: %(heads)s' % {
+                        'heads': heads
+                    }
+                )
+            for head in heads:
+                _check_head(file_, head)
 
 
 def _get_heads(config):

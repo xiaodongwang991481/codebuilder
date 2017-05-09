@@ -4,6 +4,7 @@ from sqlalchemy import Column
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
 from sqlalchemy import JSON
+from sqlalchemy.orm import backref
 from sqlalchemy.orm import relationship
 from sqlalchemy import String
 
@@ -73,6 +74,7 @@ class Group(BASE):
         super(Group, self).__init__(
             name=name
         )
+        self.namespace = Namespace(name=name)
 
     def __str__(self):
         return '[Group %s]' % self.name
@@ -119,6 +121,7 @@ class User(BASE):
     attrs = Column(JSON)
     group = relationship(
         Group,
+        backref=backref('user'),
         passive_deletes=True,
         foreign_keys=[group_name],
         uselist=False
@@ -131,4 +134,29 @@ class User(BASE):
         self.group = Group(name=name)
 
     def __str__(self):
-        return '[User %s -> %s]' % (self.name, self.group_name)
+        return '[User %s]' % self.name
+
+
+class Namespace(BASE):
+    """Namespace table."""
+    __tablename__ = 'namespace'
+    name = Column(
+        String(36), primary_key=True
+    )
+    owner = Column(
+        String(36),
+        ForeignKey('group.name', onupdate='RESTRICT', ondelete='CASCADE')
+    )
+    group = relationship(
+        Group,
+        backref=backref('namespace'),
+        passive_deletes=True,
+        foreign_keys=[owner],
+        uselist=False
+    )
+
+    def __init__(self, name):
+        super(Namespace, self).__init__(name=name)
+
+    def __str__(self):
+        return '[Namespace: %s]' % self.name
