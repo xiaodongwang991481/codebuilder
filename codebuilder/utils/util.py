@@ -15,8 +15,10 @@ PARSER = argparse.ArgumentParser(description='')
 PARSED_ARGS = None
 
 
-def init_args(args):
+def init_args(args, parser_funcs=[]):
     global PARSED_ARGS
+    for parser_func in parser_funcs:
+        parser_func(PARSER, args)
     PARSER.add_argument('args', nargs=argparse.REMAINDER)
     PARSED_ARGS = PARSER.parse_args(args)
     return PARSED_ARGS.args

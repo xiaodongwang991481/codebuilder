@@ -92,10 +92,6 @@ def do_stamp(config, cmd, namespace):
                        sql=namespace.sql)
 
 
-def do_help(config, cmd, namespace):
-    PARSER.print_help()
-
-
 def do_revision(config, cmd, namespace):
     kwargs = {
         'message': namespace.message,
@@ -215,49 +211,55 @@ def run_sanity_checks(config, revision):
         script_dir.run_env()
 
 
-def init_alembic_parsers(args, config):
-    subparsers = PARSER.add_subparsers(dest='subparser_name')
-    parser = subparsers.add_parser('help')
-    parser.set_defaults(func=do_help)
+def init_alembic_parsers(parser, args):
+    subparsers = parser.add_subparsers(dest='subparser_name')
     for name in ['current', 'history', 'heads']:
-        parser = subparsers.add_parser(name)
-        parser.add_argument(
+        subparser = subparsers.add_parser(name)
+        subparser.add_argument(
             '--verbose',
             action='store_true',
             help='Display more verbose output for the specified command'
         )
-        parser.set_defaults(func=do_generic_show)
-    parser = subparsers.add_parser('check_migration')
-    parser.set_defaults(func=do_check_migration)
-    parser = subparsers.add_parser('upgrade')
-    parser.add_argument('--delta', type=int)
-    parser.add_argument('--sql', action='store_true')
-    parser.add_argument('revision', nargs='?')
-    parser.add_argument('--mysql-engine',
-                        default='',
-                        help='Change MySQL storage engine of current '
-                             'existing tables')
-    parser.set_defaults(func=do_upgrade)
-    parser = subparsers.add_parser('downgrade', help="(No longer supported)")
-    parser.add_argument('None', nargs='?', help="Downgrade not supported")
-    parser.set_defaults(func=no_downgrade)
-    parser = subparsers.add_parser('stamp')
-    parser.add_argument('--sql', action='store_true')
-    parser.add_argument('revision')
-    parser.set_defaults(func=do_stamp)
+        subparser.set_defaults(func=do_generic_show)
+    subparser = subparsers.add_parser('check_migration')
+    subparser.set_defaults(func=do_check_migration)
+    subparser = subparsers.add_parser('upgrade')
+    subparser.add_argument('--delta', type=int)
+    subparser.add_argument('--sql', action='store_true')
+    subparser.add_argument('revision', nargs='?')
+    subparser.add_argument(
+        '--mysql-engine',
+        default='',
+        help='Change MySQL storage engine of current existing tables'
+    )
+    subparser.set_defaults(func=do_upgrade)
+    subparser = subparsers.add_parser(
+        'downgrade', help="(No longer supported)"
+    )
+    subparser.add_argument(
+        'None', nargs='?', help="Downgrade not supported"
+    )
+    subparser.set_defaults(func=no_downgrade)
+    subparser = subparsers.add_parser('stamp')
+    subparser.add_argument('--sql', action='store_true')
+    subparser.add_argument('revision')
+    subparser.set_defaults(func=do_stamp)
+    subparser = subparsers.add_parser('revision')
+    subparser.add_argument('-m', '--message')
+    subparser.add_argument('--sql', action='store_true')
+    subparser.add_argument('--autogenerate', action='store_true')
+    subparser.set_defaults(func=do_revision)
 
-    parser = subparsers.add_parser('revision')
-    parser.add_argument('-m', '--message')
-    parser.add_argument('--sql', action='store_true')
-    parser.add_argument('--autogenerate', action='store_true')
-    parser.set_defaults(func=do_revision)
-    namespace = PARSER.parse_args(args)
+
+def parse_alembic_args(namespace, config):
     return namespace.func(config, namespace.subparser_name, namespace)
 
 
 def main():
-    args = util.init_args(sys.argv[1:])
+    util.init_args(
+        sys.argv[1:], [init_alembic_parsers]
+    )
     settings.init_config()
     logsetting.init_logging()
     config = get_alembic_config()
-    return init_alembic_parsers(args, config)
+    return parse_alembic_args(util.PARSED_ARGS, config)
